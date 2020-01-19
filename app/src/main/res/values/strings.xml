@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Navigator</string>
+
+    <string name="current_location_explanation">This app needs to access your current location,
+        in order to help with the navigation.</string>
+
+    <string name="location_not_allowed">This app will not work without GPS access, sorry for the
+        inconvenience.</string>
+    <string name="ok">Ok</string>
+
+    <string name="mapbox_instance_key">pk.eyJ1IjoidGhlY29yZW1hbjI3IiwiYSI6ImNqdHN1bnp4cjAxYmc0ZG1oeW
+        pvZGt1N3MifQ.EfUYatv127bI86hC-cFTxw</string>
+
+
 </resources>
