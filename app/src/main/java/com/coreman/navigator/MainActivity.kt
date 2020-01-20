@@ -69,14 +69,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, Style.OnStyleLoade
                 .withLatLng(LatLng(4.667426, -74.056624))
                 .withIconImage("trip_origin-24px")
                 .withTextField("Mi Aguila")
-                .withIconSize(2.0f))
+                .withIconSize(.8f))
 
 
             symbolManager.create(SymbolOptions()
                 .withLatLng(LatLng(4.672655, -74.054071))
                 .withIconImage("pin_drop")
                 .withTextField("Virrey Park Hotel")
-                .withIconSize(2.0f))
+                .withIconSize(1.0f))
 
             Intent(this, LocationService::class.java).also {
                 startService(it)
