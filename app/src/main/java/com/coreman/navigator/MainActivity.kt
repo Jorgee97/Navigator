@@ -5,21 +5,30 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.coreman.navigator.services.SpeedService
+import com.coreman.navigator.services.LocationService
+import com.coreman.navigator.utils.SpeedConverter
 import com.google.android.material.snackbar.Snackbar
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListener {
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, Style.OnStyleLoaded, PermissionsListener {
 
     private var permissionsManager : PermissionsManager = PermissionsManager(this)
+    private lateinit var map: MapboxMap
+    private lateinit var symbolManager: SymbolManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,42 +39,85 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, PermissionsListene
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        Intent(this, SpeedService::class.java).also {intent ->
-            startService(intent)
-        }
 
-        /*
         IntentFilter().also {
-            it.addAction(SpeedService().ACCELEROMETER_SPEED_ACTION)
+            it.addAction(LocationService().LOCATION_UPDATE_ACTION)
             registerReceiver(mReceiver, it)
         }
-        */
+
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
-        mapboxMap.setStyle(Style.MAPBOX_STREETS)
-
-        initializeLocationService()
+        map = mapboxMap
+        mapboxMap.setStyle("mapbox://styles/thecoreman27/ck5l8sinp0moz1io3vslo8emg") {
+            initializeLocationService(it)
+        }
     }
 
-    private fun initializeLocationService() {
+    private fun initializeLocationService(style: Style) {
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             permissionsManager = PermissionsManager(this)
             permissionsManager.requestLocationPermissions(this)
+        } else {
+            symbolManager = SymbolManager(mapView, map, style)
+
+            symbolManager.iconAllowOverlap = true
+            symbolManager.iconIgnorePlacement = true
+
+
+            symbolManager.create(SymbolOptions()
+                .withLatLng(LatLng(4.667426, -74.056624))
+                .withIconImage("trip_origin-24px")
+                .withTextField("Mi Aguila")
+                .withIconSize(2.0f))
+
+
+            symbolManager.create(SymbolOptions()
+                .withLatLng(LatLng(4.672655, -74.054071))
+                .withIconImage("pin_drop")
+                .withTextField("Virrey Park Hotel")
+                .withIconSize(2.0f))
+
+            Intent(this, LocationService::class.java).also {
+                startService(it)
+            }
         }
+    }
+
+    override fun onStyleLoaded(style: Style) {
+        initializeLocationService(style)
     }
 
     private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            if (intent.hasExtra(SpeedService().ACCELEROMETER_SPEED)) {
-                // TODO: Finish the implementation of the speed
+            if (intent.hasExtra(LocationService().DEVICE_SPEED)) {
+                val actualSpeed = intent.getStringExtra(LocationService().DEVICE_SPEED)
+
+                val speedInKmPerHour =
+                    SpeedConverter().calculateSpeedInKilometers(actualSpeed!!.toDouble())
+
+                txt_speed.text = "%.2f".format(speedInKmPerHour)
+            }
+
+            if(intent.hasExtra(LocationService().LOCATION_UPDATE)) {
+                val currentLocation = intent.getStringExtra(LocationService().LOCATION_UPDATE)!!.split(',')
+                val latLng = LatLng(currentLocation[0].toDouble(), currentLocation[1].toDouble())
+                map.cameraPosition = CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(15.0)
+                    .build()
+
+                symbolManager.create(SymbolOptions()
+                    .withLatLng(latLng)
+                    .withIconImage("dot-9")
+                    .withIconSize(2.0f))
             }
         }
     }
 
     override fun onPermissionResult(granted: Boolean) {
         if (granted) {
-            initializeLocationService()
+            map.getStyle(this)
         } else {
             Snackbar.make(mapView, R.string.location_not_allowed, Snackbar.LENGTH_LONG).setAction(
                 R.string.ok
