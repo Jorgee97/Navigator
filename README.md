@@ -11,7 +11,7 @@ I used MapBox SDK for the map showing and rendering of the sprites to the map
 # Development process
 I didn't went for an architecture such as MVP or MVVM because the application felt short to do such approach.
 
-I handle most of the map methods on a single activity and I created a Service to keep track of the location updates and the speed of the device
+I handle most of the map methods on a single activity and I created a Service to keep track of the location updates and the speed of the device by updating my UI by using a BroadcastReceiver.
 
 Also I used a "custom" style map to load my sprites to the MapBox SDK so I can pretty much resamble the given screenshot example.
 
