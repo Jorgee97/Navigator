@@ -13,5 +13,5 @@ I didn't went for an architecture such as MVP or MVVM because the application fe
 
 I handle most of the map methods on a single activity and I created a Service to keep track of the location updates and the speed of the device by updating my UI by using a BroadcastReceiver.
 
-Also I used a "custom" style map to load my sprites to the MapBox SDK so I can pretty much resamble the given screenshot example.
+Also I used a "custom" style map to load my sprites to the MapBox SDK so I can pretty much resemble the given screenshot example.
 
